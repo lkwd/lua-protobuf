@@ -1,0 +1,31 @@
+-- -*- mode: lua -*-
+package = "@PACKAGE@"
+version = "@VERSION@"
+
+source = {
+  url = "git://github.com/lkwd/lua-protobuf.git",
+}
+
+description = {
+  summary = "protobuf data support for Lua",
+  detailed = [[
+This project offers a simple C library for basic protobuf wire format encode/decode.
+  ]],
+  homepage = "https://github.com/lkwd/lua-protobuf",
+  license = "MIT",
+}
+
+dependencies = {
+  "lua >= 5.1"
+}
+
+build = {
+  type = "make",
+  modules = {
+    pb     = {
+	  sources = { "pb.c" },
+	  incdirs = { "@LUAJIT_DIR@/src" },
+	},
+    protoc = "protoc.lua";
+  }
+}

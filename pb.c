@@ -1,4 +1,5 @@
 #define PB_STATIC_API
+#include "config.h"
 #include "pb.h"
 
 PB_NS_BEGIN
@@ -275,7 +276,7 @@ static int lpb_hexchar(char ch) {
     return -1;
 }
 
-#ifdef luaL_newlib /* LuaJIT >= 2.1 */
+#ifdef HAVE_LUAJIT_SRC /* LuaJIT sources */
 
 #include <lj_ctype.h>
 #include <lj_obj.h>
@@ -302,7 +303,7 @@ static uint64_t lpb_ljcdata_toint(lua_State *L, int idx, int *isint) {
 	*isint = 1;
 	return v;
 }
-#endif /* LuaJIT >= 2.1 */
+#endif /* LuaJIT sources */
 
 static uint64_t lpb_tointegerx(lua_State *L, int idx, int *isint) {
     int neg = 0;
@@ -312,12 +313,12 @@ static uint64_t lpb_tointegerx(lua_State *L, int idx, int *isint) {
     if (*isint) return v;
 #else
     uint64_t v = 0;
-#ifdef luaL_newlib /* LuaJIT >= 2.1 */
+#ifdef HAVE_LUAJIT_SRC /* LuaJIT sources */
     if (lua_type(L, idx) == LUA_TCDATA) {
 	    v = lpb_ljcdata_toint(L, idx, isint);
 	    if (*isint) return v;
     }
-#endif /* LuaJIT >= 2.1 */
+#endif /* LuaJIT sources */
     lua_Number nv = lua_tonumberx(L, idx, isint);
     if (*isint) {
         if (nv < (lua_Number)INT64_MIN || nv > (lua_Number)INT64_MAX)
