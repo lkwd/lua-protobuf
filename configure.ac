@@ -36,8 +36,8 @@ AS_IF([test -d "$LUAJIT_DIR" && test -d "$LUAJIT_DIR/src"], [
 ])
 
 # luarocks dir
-AC_ARG_ENABLE([rocksdir],
-	[AC_HELP_STRING([--enable-rocksdir=DIR],
+AC_ARG_ENABLE([rocks],
+	[AC_HELP_STRING([--enable-rocks=DIR],
 		[Specify where to install the rock])],
 	[ROCKS_DIR=$enableval])
 AC_MSG_CHECKING([for rocks directory])
@@ -46,7 +46,7 @@ AS_IF([test "x$ROCKS_DIR" != x && test -d "$ROCKS_DIR"], [
 	AC_SUBST([ROCKS_DIR], [$ROCKS_DIR])
 ], [
 	AC_MSG_RESULT([not found])
-	AC_MSG_FAILURE([rocks directory not found (see --enable-rocksdir)])
+	AC_MSG_FAILURE([rocks directory not found (see --enable-rocks)])
 ])
 
 # checks for programs
