@@ -8,9 +8,9 @@ ACLOCAL_AMFLAGS = -I m4
 #pb.so: pb.c pb.h
 #	$(CC) $(CFLAGS) $(CPPFLAGS) pb.c -o $@
 
-lib_LTLIBRARIES = pb.la
-pb_la_SOURCES = pb.c pb.h
-pb_la_LDFLAGS = -module -avoid-version -shared
-
 EXTRA_DIST = \
-	protoc.lua
+	protoc.lua \
+	pb.c pb.h
+
+install-exec-hook:
+	luarocks make rockspecs/$(PACKAGE)-$(VERSION).rockspec --tree=@ROCKS_DIR@
