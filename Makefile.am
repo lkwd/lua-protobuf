@@ -12,15 +12,5 @@ lib_LTLIBRARIES = pb.la
 pb_la_SOURCES = pb.c pb.h
 pb_la_LDFLAGS = -module -avoid-version -shared
 
-all-local:: pb.so
-
-clean-local::
-	rm -f pb.so
-
-pb.so: $(lib_LTLIBRARIES)
-	test -e $@ || $(LN_S) $(abs_builddir)/.libs/pb.so $@
-
-
 EXTRA_DIST = \
-	protoc.lua \
-	rockspecs/$(PACKAGE)-lkwd.rockspec.in
+	protoc.lua
