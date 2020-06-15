@@ -6,8 +6,11 @@ AM_INIT_AUTOMAKE([foreign dist-xz subdir-objects])
 # luajit srouces
 AC_ARG_WITH([tarantool],
 	[AS_HELP_STRING([--with-tarantool=DIR],
-		[specify location of tarantool sources])],
-	[LUAJIT_DIR=$withval/third_party/luajit])
+		[specify location of tarantool sources])], [
+			LUAJIT_DIR=$withval/third_party/luajit
+			AC_DEFINE([HAVE_TARANTOOL], 1,
+				[Have tarantool sources to build against?])
+	])
 AC_ARG_WITH([luajit],
 	[AS_HELP_STRING([--with-luajit=DIR],
 		[specify location of luajit sources])],
@@ -20,7 +23,6 @@ AS_IF([test "x$LUAJIT_DIR" == x], [
 AS_IF([test -d "$LUAJIT_DIR" && test -d "$LUAJIT_DIR/src"], [
 	AC_MSG_RESULT([$LUAJIT_DIR])
 	CPPFLAGS="$CPPFLAGS -I$LUAJIT_DIR/src"
-	AC_DEFINE([HAVE_LUAJIT_SRC], 1, [Have luajit sources to build against?])
 	AC_SUBST([LUAJIT_DIR], [$LUAJIT_DIR])
 ], [
 	AC_MSG_RESULT([not found])
