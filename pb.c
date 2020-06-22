@@ -12,7 +12,7 @@ PB_NS_BEGIN
 
 #include <stdio.h>
 #include <errno.h>
-
+#include <stdbool.h>
 
 /* Lua util routines */
 
@@ -49,20 +49,25 @@ static void lua_rawsetp(lua_State *L, int idx, const void *p) {
     lua_rawset(L, relindex(idx, 1));
 }
 
-#ifndef luaL_newlib /* not LuaJIT 2.1 */
-#define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
-
-static lua_Integer lua_tointegerx(lua_State *L, int idx, int *isint) {
+#ifdef HAVE_TARANTOOL
+static lua_Integer _lua_tointegerx(lua_State *L, int idx, int *isint) {
     lua_Integer i = lua_tointeger(L, idx);
     if (isint) *isint = (i != 0 || lua_type(L, idx) == LUA_TNUMBER);
     return i;
 }
 
-static lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum) {
+static lua_Number _lua_tonumberx(lua_State *L, int idx, int *isnum) {
     lua_Number i = lua_tonumber(L, idx);
     if (isnum) *isnum = (i != 0 || lua_type(L, idx) == LUA_TNUMBER);
     return i;
 }
+#else
+#define _lua_tointegerx lua_tointegerx
+#define _lua_tonumberx lua_tonumberx
+#endif /* HAVE_TARANTOOL */
+
+#ifndef luaL_newlib /* not LuaJIT 2.1 */
+#define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
 
 static void *luaL_testudata(lua_State *L, int idx, const char *type) {
     void *p = lua_touserdata(L, idx);
@@ -281,6 +286,9 @@ static int lpb_hexchar(char ch) {
 #include <lj_ctype.h>
 #include <lj_obj.h>
 
+LUA_API void *
+luaL_checkcdata(struct lua_State *L, int idx, uint32_t *ctypeid);
+
 static inline int
 luaL_convertint64(lua_State *L, int idx, bool unsignd, int64_t *result)
 {
@@ -346,7 +354,7 @@ static uint64_t lpb_tointegerx(lua_State *L, int idx, int *isint) {
     int neg = 0;
     const char *s, *os;
 #if LUA_VERSION_NUM >= 503
-    uint64_t v = (uint64_t)lua_tointegerx(L, idx, isint);
+    uint64_t v = (uint64_t)_lua_tointegerx(L, idx, isint);
     if (*isint) return v;
 #else
     uint64_t v = 0;
@@ -356,7 +364,7 @@ static uint64_t lpb_tointegerx(lua_State *L, int idx, int *isint) {
 	    return v;
     }
 #endif /* tarantool sources */
-    lua_Number nv = lua_tonumberx(L, idx, isint);
+    lua_Number nv = _lua_tonumberx(L, idx, isint);
     if (*isint) {
         if (nv < (lua_Number)INT64_MIN || nv > (lua_Number)INT64_MAX)
             luaL_error(L, "number has no integer representation");
@@ -432,12 +440,12 @@ static int lpb_addtype(lua_State *L, pb_Buffer *b, int idx, int type, size_t *pl
         ret = 1;
         break;
     case PB_Tdouble:
-        v.lnum = lua_tonumberx(L, idx, &ret);
+        v.lnum = _lua_tonumberx(L, idx, &ret);
         if (ret) len = pb_addfixed64(b, pb_encode_double((double)v.lnum));
         if (v.lnum != 0.0) len = 0;
         break;
     case PB_Tfloat:
-        v.lnum = lua_tonumberx(L, idx, &ret);
+        v.lnum = _lua_tonumberx(L, idx, &ret);
         if (ret) len = pb_addfixed32(b, pb_encode_float((float)v.lnum));
         if (v.lnum != 0.0) len = 0;
         break;
@@ -1200,7 +1208,7 @@ static pb_Type *lpb_type(pb_State *S, const char *name) {
 }
 
 static pb_Field *lpb_checkfield(lua_State *L, int idx, pb_Type *t) {
-    int isint, number = (int)lua_tointegerx(L, idx, &isint);
+    int isint, number = (int)_lua_tointegerx(L, idx, &isint);
     if (isint) return pb_field(t, number);
     return pb_fname(t, pb_name(default_state(L), luaL_checkstring(L, idx)));
 }
